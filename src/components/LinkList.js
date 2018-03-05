@@ -19,14 +19,17 @@ class LinkList extends Component {
         const linksToRender = this.props.feedQueryx.feed.links
       
         return (
-          <div>{linksToRender.map(link => <Link key={link.id} link={link} />)}</div>
+          <div>
+            {linksToRender.map((link, index) => (
+              <Link key={link.id} index={index} link={link} />
+            ))}
+          </div>
         )
       }
 }
 
 // 1
-const FEED_QUERY = gql`
-  # 2
+export const FEED_QUERY = gql`
   query FeedQuery {
     feed {
       links {
@@ -34,6 +37,16 @@ const FEED_QUERY = gql`
         createdAt
         url
         description
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
       }
     }
   }
