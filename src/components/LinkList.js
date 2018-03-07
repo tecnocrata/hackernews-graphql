@@ -26,6 +26,12 @@ class LinkList extends Component {
           </div>
         )
       }
+
+      componentDidMount() {
+        //this invication subscribes to events
+        this._subscribeToNewLinks()
+        this._subscribeToNewVotes()
+      }
     
       _updateCacheAfterVote = (store, createVote, linkId) => {
         // 1
@@ -37,6 +43,78 @@ class LinkList extends Component {
       
         // 3
         store.writeQuery({ query: FEED_QUERY, data })
+      }
+
+      _subscribeToNewLinks = () => {
+        this.props.feedQueryx.subscribeToMore({
+          document: gql`
+            subscription {
+              newLink {
+                node {
+                  id
+                  url
+                  description
+                  createdAt
+                  postedBy {
+                    id
+                    name
+                  }
+                  votes {
+                    id
+                    user {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          `,
+          updateQuery: (previous, { subscriptionData }) => {
+            //this function allows you to determine how the store should be updated with the information 
+            //that was sent by the server after the event occurred.
+            const newAllLinks = [subscriptionData.data.newLink.node, ...previous.feed.links]
+            const result = {
+              ...previous,
+              feed: {
+                links: newAllLinks
+              },
+            }
+            return result
+          }
+        })
+      }
+
+      _subscribeToNewVotes = () => {
+        this.props.feedQueryx.subscribeToMore({
+          document: gql`
+            subscription {
+              newVote {
+                node {
+                  id
+                  link {
+                    id
+                    url
+                    description
+                    createdAt
+                    postedBy {
+                      id
+                      name
+                    }
+                    votes {
+                      id
+                      user {
+                        id
+                      }
+                    }
+                  }
+                  user {
+                    id
+                  }
+                }
+              }
+            }
+          `,
+        })
       }
 }
 
